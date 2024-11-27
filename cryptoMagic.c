@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 int encryptChar(char inChar, char* output);
 void encrypt(char* sourceFileName);
@@ -8,6 +9,7 @@ void encrypt(char* sourceFileName);
 char decryptChar(char** input);
 void decrypt(char* sourceFileName);
 
+char* changeExtension(char* fileName, bool isDecrypting);
 //implement character indexing as a raw counter per line upto 255 (125 char) ? or, use a pointer to get the address of specific character and process by adress.
 int lineIndex;
 
@@ -15,22 +17,47 @@ int main(int argc, char *argv[]) {
 
     switch(argc){
         case 2: 
-            char* fileName = argv[1];
-            encrypt(fileName); 
+            encrypt(argv[1]); 
             break;
         case 3:
-            if(strcmp(argv[1], "D") == 0){
-                decrypt(fileName);
+            if(strcmp(argv[1], "-D") == 0){
+                decrypt(argv[2]);
             }    
 
-            else if(strcmp(argv[1], "E") == 0){
-                encrypt(fileName);
+            else if(strcmp(argv[1], "-E") == 0){
+                encrypt(argv[2]);
             }
             break;
         default: 
             printf("Invalid arguments.");
     }
     
+}
+
+char* changeExtension(char* fileName, bool isDecrypting){
+    int length = strlen(fileName);
+    int lastDot = length; //lastDot is the index of the last dot in the file name, or, the null terminator if no dot is present.
+
+    for(int i = 0; i < length; i++){
+        if(fileName[i] == '.'){
+            lastDot = i; 
+        }
+    }
+
+    char* newFileName = malloc(lastDot + 5);
+
+    for(int i = 0; i < lastDot; i++){
+        newFileName[i] = fileName[i];
+    }
+    if(isDecrypting){
+        sprintf(newFileName + lastDot, ".txt");
+    }
+
+    else{
+        sprintf(newFileName + lastDot, ".crp");
+    }
+
+    return newFileName;
 }
 
 void encrypt(char* sourceFileName){
@@ -40,27 +67,42 @@ void encrypt(char* sourceFileName){
         printf("Error opening file.");
     }
 
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
+    char plainText[121] = "";
+    char cipherText[255] = "";
+    int plainTextIndex = 0;
+    int cipherTextIndex = 0;
+    bool stillReading = true;
+    while(stillReading){
 
-    while ((read = getline(&line, &len, fileSrc)) != -1) {
-        //printf("Retrieved line of length %zu :\n", read);
-        //printf("%s", line);
-        char* output = malloc(strlen(line) * 2 + 1);
-        char* ptr = line;
-        char* outputPtr = output;
-        while(*ptr != 0){
-            int n = encryptChar(*ptr, outputPtr);
-            ptr++;
-            outputPtr+= n;
+        for(plainTextIndex = 0; plainTextIndex < 120; plainTextIndex++){
+
+            cipherText[cipherTextIndex] = 0;
+            int ch = getc(fileSrc);
+
+            if(ch == EOF){
+                stillReading = false;
+                break;
+            }
+
+            if(ch == '\n'){
+                int bytesWritten = sprintf(&(cipherText[cipherTextIndex]), "\n");
+                cipherTextIndex += bytesWritten;
+                break;
+            }
+
+            int encrypted = ch - 16;
+
+            if(encrypted < 32){
+                encrypted = (encrypted - 32) + 144;
+            }
+
+            int bytesWritten = sprintf(&(cipherText[cipherTextIndex]), "%02X", encrypted);
+            cipherTextIndex += bytesWritten;
+            
         }
 
-        printf("%s", output);
-        free(output);
+        printf("%s", cipherText);
     }
-
-    free(line);
 
     fclose(fileSrc);
 }
