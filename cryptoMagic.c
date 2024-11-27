@@ -8,40 +8,31 @@ fileIO();
 encrypt();
 decrypt();
 
-//implement character indexing as a raw counter per line upto 255? or, use a pointer to get the address of specific character and process by adress.
+//implement character indexing as a raw counter per line upto 255 (125 char) ? or, use a pointer to get the address of specific character and process by adress.
 int lineIndex;
 
 int main(int argc, char *argv[]) {
 
-    char* fileName = argv[0];
-    char* flag = argv[1];
+    //hexadecimal adressing? you are just setting the old array pointer to a new location? redundant or clean?
+    char[50] fileName = argv[0]; //arbitrary 49 character filename limit 
+    char flag = argv[1];
 
     FILE* fileTarget; 
 
-    if(flag == 'E')
-        file_point = fopen(filename, "w");
-    else if(flag == 'D')
-        file_point = fopen(filename, "r");
+    fileTarget = fopen(argv[0], r);
 
-    switch(flag){
+    switch(flag){ //or switch argv[0]
         case 'D':
-            decrypt();
+            decrypt(fileName, fileTarget);
             break;
-        case 'E':
-            encrypt();
-            break;
-        default:
-            encrypt();
+        case 'E': //<-- fall down to default encrypt case // or set case '' as default encrypt, and all other cases are errors
+        default: //<-- default case will always be encrypt
+        encrypt(fileName, fileTarget); 
             break;
     }
-
-//get input with command switch : WIP, IMPLEMENTED
-//call file IO funcition with switches and variables, WIP, IMPLEMENTED
-//
-
 }
 
-int modiferFlag(char mod[]){
+int modiferFlag(char mod[]){ //is this function needed? just implement as if branch since newlines are ignored and constant
 
     if(inChar == 9)
         mod[2] = 'TT';
@@ -49,29 +40,36 @@ int modiferFlag(char mod[]){
     if(inChar)
 }
 
-formatting(FILE* file){
-//output / input mechanism, call encrypt/decrypt line by line
-//use fputs("file", ptr (line pointer))
+////formatting(FILE* file){ 
+/*
+^^ THIS IS NOW getline()
+output / input mechanism, call encrypt/decrypt line by line
+use fputs("file", ptr (line pointer))
+file input separation scheme
+*/
 
-//file input separation scheme
+fileIO(char[] filename, FILE* fileptr) { ////binary read or text read?
+//TEXT READ
 
+    ////FILE* fileptr; 
+    //dont need ^^, already passed as param
 
+    char line[120]; //replace 125 with max line size preset.
 
-}
+    ////fileptr = fopen("fileName", "mode"); //"r+" mode set pointer at [0] of file
+    //redundant, already passed as pararm, instead, open new file as write
 
-fileIO(){ //binary read or text read?
-    FILE* fileptr;
-    char line[125]; //replace 125 with max line size preset.
+    FILE* fileout;
 
-    fileptr = fopen("fileName", "mode"); //"r+" mode set pointer at [0] of file
+    fileout = fopen("fileName", w); 
 
     if(fileptr == NULL){
         printf("Error while opening file.");
     }
 
-    if(fgets(str, 125, ptr) != NULL) {
-
-        puts(str);
+    if(fgets(str, 120, ptr) != NULL) {
+        getline();
+        ////puts(str);
     }
 
     fclose(fileptr);
@@ -81,7 +79,7 @@ fileIO(){ //binary read or text read?
 }
 
 encrypt(char inChar){
-    if(inChar == '<'){
+    if(inChar == '\\'){
         modiferFlag(char);
     }
 
@@ -92,7 +90,7 @@ encrypt(char inChar){
             outChar[2] = 'TT';
             break;
         case 2:
-            outChar[4] = '<CR>';
+            outChar[4] = "\r\n" || "\n" || "\r";
             break;
         default:
             printf("..");
@@ -128,6 +126,12 @@ encrypt(char inChar){
 
 decrypt(){
     //per line 
+    //for(everyline, line <= newline count, line++){
+        getLine(); 
+        //
+    }
+    
+
     for(int i == 0, i < 256, i++){
         //get char = char 2hexChar
 
@@ -146,3 +150,79 @@ decrypt(){
                 //<-- this is the decrypted char buffer, write to out file by line
         }
     }
+
+    //PSUEDOCODE
+
+    /*
+    import string, stdlib, and stdio.
+
+    main(argc, argv[]){
+        FROM CL ARGUMENTS, FLAG AND FILENAME
+
+        initiate file pointer 
+
+        open and read at file pointer 
+        
+        
+        //
+
+        initiate outputfile as 
+
+        fopen("filename.crp/txt") <-- do this in output fn
+
+        or pass file pointer to each, would be easier to access. (add filename, and pointer?)
+
+        if(flag is decrypt)
+            decrypt(filename);
+
+        else if(flag is encrypt)
+            encrypt("filename");
+    }
+
+    decrypt(string filename. file){
+        
+        fopen(file.crp, read);
+
+        if file NOT crp, return error msg
+
+        fnew(file.txt, write)
+
+        str search for ("\") modifier flag
+
+        if("\t"), repeat do regular modification
+
+        else if("\n, \r\n, \r"){
+            KEEP data,
+            exit line
+
+            fappend(fileout.txt, append)
+            goto next line and loop
+
+        }
+
+        when done,
+
+        fclose(fileout.txt)
+
+        message
+    }
+
+    encrypt(string filename, file){
+        
+        reverse of decrypt, same process.
+        
+        fileinputopen(file.any, read)
+        fopen (new) (filename.crp, w+)
+
+        file is written to with crp extension
+    }
+
+    getline(filename?, file pointer index at new line) { 
+        new line string = fgets(from end of prev line, to new end line);
+
+        return line string;
+    }
+
+
+    */
+    
