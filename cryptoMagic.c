@@ -1,155 +1,161 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-outChar();
-inChar();
-fileIO();
-encrypt();
-decrypt();
+int encryptChar(char inChar, char* output);
+void encrypt(char* sourceFileName);
+
+char decryptChar(char** input);
+void decrypt(char* sourceFileName);
 
 //implement character indexing as a raw counter per line upto 255 (125 char) ? or, use a pointer to get the address of specific character and process by adress.
 int lineIndex;
 
 int main(int argc, char *argv[]) {
 
-    //hexadecimal adressing? you are just setting the old array pointer to a new location? redundant or clean?
-    char[50] fileName = argv[0]; //arbitrary 49 character filename limit 
-    char flag = argv[1];
-
-    FILE* fileTarget; 
-
-    fileTarget = fopen(argv[0], r);
-
-    switch(flag){ //or switch argv[0]
-        case 'D':
-            decrypt(fileName, fileTarget);
+    switch(argc){
+        case 2: 
+            char* fileName = argv[1];
+            encrypt(fileName); 
             break;
-        case 'E': //<-- fall down to default encrypt case // or set case '' as default encrypt, and all other cases are errors
-        default: //<-- default case will always be encrypt
-        encrypt(fileName, fileTarget); 
+        case 3:
+            if(strcmp(argv[1], "D") == 0){
+                decrypt(fileName);
+            }    
+
+            else if(strcmp(argv[1], "E") == 0){
+                encrypt(fileName);
+            }
             break;
-    }
-}
-
-int modiferFlag(char mod[]){ //is this function needed? just implement as if branch since newlines are ignored and constant
-
-    if(inChar == 9)
-        mod[2] = 'TT';
-
-    if(inChar)
-}
-
-////formatting(FILE* file){ 
-/*
-^^ THIS IS NOW getline()
-output / input mechanism, call encrypt/decrypt line by line
-use fputs("file", ptr (line pointer))
-file input separation scheme
-*/
-
-fileIO(char[] filename, FILE* fileptr) { ////binary read or text read?
-//TEXT READ
-
-    ////FILE* fileptr; 
-    //dont need ^^, already passed as param
-
-    char line[120]; //replace 125 with max line size preset.
-
-    ////fileptr = fopen("fileName", "mode"); //"r+" mode set pointer at [0] of file
-    //redundant, already passed as pararm, instead, open new file as write
-
-    FILE* fileout;
-
-    fileout = fopen("fileName", w); 
-
-    if(fileptr == NULL){
-        printf("Error while opening file.");
-    }
-
-    if(fgets(str, 120, ptr) != NULL) {
-        getline();
-        ////puts(str);
-    }
-
-    fclose(fileptr);
-
-    return 0?;
-    //fgets code here if needed, otherwise call formatting in formating function
-}
-
-encrypt(char inChar){
-    if(inChar == '\\'){
-        modiferFlag(char);
-    }
-
-    switch(modFlag){
-        case 0: 
-
-        case 1:
-            outChar[2] = 'TT';
-            break;
-        case 2:
-            outChar[4] = "\r\n" || "\n" || "\r";
-            break;
-        default:
-            printf("..");
-
-    }
-    //do these steps based on a special character flag instead?
-    if(inChar == 9)
-
-        //replace outChar with string defenition?
-        //this will define the int value as 'T' * 2, cannot be concatenated into a string unless explicitly defined.
-        //use buffer string, strcmp, others using string library.
-
-        outChar == 'T' * 2;
-    
-    else if(CRFlag == true) //carriage return flag for inChar
-        char newChar[4] = "<CR>"; //dont explictly use
-
-    //general character encryption formula
-    else{
-        char outChar[4] = inChar - 16;
-
-        if(outChar < 32)
-            outChar = (outChar - 32) + 144;
-
-        char writeBuf = outChar;
-
-        writeBuf *= 2;
-
-        //to hex?
-
-    }
-}
-
-decrypt(){
-    //per line 
-    //for(everyline, line <= newline count, line++){
-        getLine(); 
-        //
+        default: 
+            printf("Invalid arguments.");
     }
     
+}
 
-    for(int i == 0, i < 256, i++){
-        //get char = char 2hexChar
+void encrypt(char* sourceFileName){
+    FILE* fileSrc= fopen(sourceFileName, "r");
 
-        if(inChar == 'TT') //very large???
-            str outStr = "<tab>";
+    if (fileSrc == NULL) {
+        printf("Error opening file.");
+    }
 
-            char rawVal;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
 
-            rawVal = (outChar[0] * 16) + (outChar[1] * 16);
-
-            outChar += 16;
-
-            if(outChar > 127)
-                outChar = (outChar - 144) + 32;
-
-                //<-- this is the decrypted char buffer, write to out file by line
+    while ((read = getline(&line, &len, fileSrc)) != -1) {
+        //printf("Retrieved line of length %zu :\n", read);
+        //printf("%s", line);
+        char* output = malloc(strlen(line) * 2 + 1);
+        char* ptr = line;
+        char* outputPtr = output;
+        while(*ptr != 0){
+            int n = encryptChar(*ptr, outputPtr);
+            ptr++;
+            outputPtr+= n;
         }
+
+        printf("%s", output);
+        free(output);
     }
+
+    free(line);
+
+    fclose(fileSrc);
+}
+
+void decrypt(char* sourceFileName){
+    FILE* fileSrc = fopen(sourceFileName, "r");
+
+    if (fileSrc == NULL) {
+        printf("Error opening file.");
+    }
+
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    while ((read = getline(&line, &len, fileSrc)) != -1) {
+        //printf("Retrieved line of length %zu :\n", read);
+        //printf("%s", line);
+        char* output = malloc(strlen(line));
+        char* ptr = line;
+        char* outputPtr = output;
+        while(*ptr != 0){
+            char decrypted = decryptChar(&ptr);
+            if(decrypted != 0){
+                *outputPtr = decrypted;
+                *outputPtr += 1;
+
+            }
+        }
+
+        printf("%s", output);
+        free(output);
+    }
+
+    free(line);
+
+    fclose(fileSrc);
+}
+
+int encryptChar(char inChar, char* output){
+
+    if(inChar == '\t'){
+        return sprintf(output, "TT");
+    }
+
+    else if(inChar == '\n'){
+        return sprintf(output, "\n");
+    }
+
+    else if(inChar == '\r'){
+        return sprintf(output, "");
+    }
+
+    else{
+        int encrypted = inChar - 16;
+
+        if(encrypted < 32){
+            encrypted = (encrypted - 32) + 144;
+        }
+
+        return sprintf(output, "%02X", encrypted);
+    }
+}
+
+char decryptChar(char** input){
+    if((*input)[0] == '\n'){ 
+        *input += 1;
+        return '\n';
+    }
+
+    else if((*input)[0] == '\r'){
+        return 0;
+    }
+
+    else{
+        char hex[3]; 
+        hex[0] = (*input)[0];
+        hex[1] = (*input)[1];
+        hex[2] = 0;
+        *input += 2;
+
+        int decrypted = strtol(hex, NULL, 16);
+
+        decrypted = decrypted + 16;
+
+        if(decrypted > 127){
+                decrypted = (decrypted - 144) + 32;
+        }
+        return decrypted;
+
+    }
+}
+
+
+
 
     //PSUEDOCODE
 
